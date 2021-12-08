@@ -19,7 +19,7 @@ define(['jointjs','css!./styles/AcoreWidget.css'], function (joint) {
         this.nodes = {};
         this._initialize();
 
-        this._logger.debug('ctor finished');
+        this._logger.debug('actor finished');
     }
 
     AcoreWidget.prototype._initialize = function () {
