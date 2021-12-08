@@ -16,9 +16,10 @@
   },
   "version": "1.0.0",
   "devDependencies": {
-    "mocha": "^5.2.0"
+    "mocha": "^9.1.3"
   },
   "dependencies": {
+    "jointjs": "^3.4.4",
     "webgme": "latest",
     "webgme-bindings": "latest",
     "webgme-cli": "latest"
