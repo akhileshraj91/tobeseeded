@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "id": "Acore",
+    "title": "Acore",
+    "panel": "panels/Acore/AcorePanel",
+    "DEBUG_ONLY": false
+  }
+]

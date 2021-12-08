@@ -1,4 +1,29 @@
 {
-  "components": {},
-  "dependencies": {}
+  "components": {
+    "plugins": {
+      "exec_plugin": {
+        "src": "src/plugins/exec_plugin",
+        "test": "test/plugins/exec_plugin"
+      }
+    },
+    "seeds": {
+      "tobeseeded": {
+        "src": "src/seeds/tobeseeded"
+      }
+    },
+    "visualizers": {
+      "Acore": {
+        "src": "panels/Acore/AcorePanel",
+        "title": "Acore",
+        "panel": "src/visualizers/panels/Acore",
+        "secondary": false,
+        "widget": "src/visualizers/widgets/Acore"
+      }
+    }
+  },
+  "dependencies": {
+    "plugins": {},
+    "seeds": {},
+    "visualizers": {}
+  }
 }
