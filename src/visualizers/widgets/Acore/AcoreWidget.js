@@ -36,9 +36,9 @@ define(['jointjs','css!./styles/AcoreWidget.css'], function (joint) {
 
         // Registering to events can be done with jQuery (as normal)
         this._el.on('dblclick', function (event) {
-            event.stopPropagation();
-            event.preventDefault();
-            self.onBackgroundDblClick();
+            // event.stopPropagation();
+            // event.preventDefault();
+            // self.onBackgroundDblClick();
         });
     };
 
@@ -47,48 +47,53 @@ define(['jointjs','css!./styles/AcoreWidget.css'], function (joint) {
     };
 
     // Adding/Removing/Updating items
-    AcoreWidget.prototype.addNode = function (desc) {
-        if (desc) {
-            // Add node to a table of nodes
-            var node = document.createElement('div'),
-                label = 'children';
+    // AcoreWidget.prototype.addNode = function (desc) {
+    //     if (desc) {
+    //         // Add node to a table of nodes
+    //         var node = document.createElement('div'),
+    //             label = 'children';
 
-            if (desc.childrenIds.length === 1) {
-                label = 'child';
-            }
+    //         if (desc.childrenIds.length === 1) {
+    //             label = 'child';
+    //         }
 
-            this.nodes[desc.id] = desc;
-            node.innerHTML = 'Adding node "' + desc.name + '" (click to view). It has ' +
-                desc.childrenIds.length + ' ' + label + '.';
+    //         this.nodes[desc.id] = desc;
+    //         node.innerHTML = 'Adding node "' + desc.name + '" (click to view). It has ' +
+    //             desc.childrenIds.length + ' ' + label + '.';
 
-            this._el.append(node);
-            node.onclick = this.onNodeClick.bind(this, desc.id);
-        }
+    //         this._el.append(node);
+    //         node.onclick = this.onNodeClick.bind(this, desc.id);
+    //     }
+    AcoreWidget.prototype.initMachine = function (machineDescriptor) {
+         console.log(machineDescriptor);
+    };
+    AcoreWidget.prototype.destroyMachine = function () {
     };
 
-    AcoreWidget.prototype.removeNode = function (gmeId) {
-        var desc = this.nodes[gmeId];
-        this._el.append('<div>Removing node "' + desc.name + '"</div>');
-        delete this.nodes[gmeId];
-    };
 
-    AcoreWidget.prototype.updateNode = function (desc) {
-        if (desc) {
-            this._logger.debug('Updating node:', desc);
-            this._el.append('<div>Updating node "' + desc.name + '"</div>');
-        }
-    };
+    // AcoreWidget.prototype.removeNode = function (gmeId) {
+    //     var desc = this.nodes[gmeId];
+    //     this._el.append('<div>Removing node "' + desc.name + '"</div>');
+    //     delete this.nodes[gmeId];
+    // };
+
+    // AcoreWidget.prototype.updateNode = function (desc) {
+    //     if (desc) {
+    //         this._logger.debug('Updating node:', desc);
+    //         this._el.append('<div>Updating node "' + desc.name + '"</div>');
+    //     }
+    // };
 
     /* * * * * * * * Visualizer event handlers * * * * * * * */
 
-    AcoreWidget.prototype.onNodeClick = function (/*id*/) {
-        // This currently changes the active node to the given id and
-        // this is overridden in the controller.
-    };
+    // AcoreWidget.prototype.onNodeClick = function (/*id*/) {
+    //     // This currently changes the active node to the given id and
+    //     // this is overridden in the controller.
+    // };
 
-    AcoreWidget.prototype.onBackgroundDblClick = function () {
-        this._el.append('<div>Background was double-clicked!!</div>');
-    };
+    // AcoreWidget.prototype.onBackgroundDblClick = function () {
+    //     this._el.append('<div>Background was double-clicked!!</div>');
+    // };
 
     /* * * * * * * * Visualizer life cycle callbacks * * * * * * * */
     AcoreWidget.prototype.destroy = function () {

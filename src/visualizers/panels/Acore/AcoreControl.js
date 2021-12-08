@@ -25,8 +25,8 @@ define([
         this._widget = options.widget;
 
         this._currentNodeId = null;
-        this._currentNodeParentId = undefined;
-
+        // this._currentNodeParentId = undefined;
+        this._networkRootLoaded = false;
         this._initWidgetEventHandlers();
 
         this._logger.debug('ctor finished');
@@ -44,33 +44,36 @@ define([
     // defines the parts of the project that the visualizer is interested in
     // (this allows the browser to then only load those relevant parts).
     AcoreControl.prototype.selectedObjectChanged = function (nodeId) {
-        var desc = this._getObjectDescriptor(nodeId),
-            self = this;
-
-        self._logger.debug('activeObject nodeId \'' + nodeId + '\'');
+        // var desc = this._getObjectDescriptor(nodeId),
+            // self = this;
+        var self = this;
+        // self._logger.debug('activeObject nodeId \'' + nodeId + '\'');
 
         // Remove current territory patterns
         if (self._currentNodeId) {
             self._client.removeUI(self._territoryId);
+            self._networkRootLoaded = false;
         }
 
         self._currentNodeId = nodeId;
-        self._currentNodeParentId = undefined;
+        // self._currentNodeParentId = undefined;
 
         if (typeof self._currentNodeId === 'string') {
             // Put new node's info into territory rules
             self._selfPatterns = {};
-            self._selfPatterns[nodeId] = {children: 0};  // Territory "rule"
+            // self._selfPatterns[nodeId] = {children: 0};  // Territory "rule"
 
-            self._widget.setTitle(desc.name.toUpperCase());
+            // self._widget.setTitle(desc.name.toUpperCase());
 
-            if (typeof desc.parentId === 'string') {
-                self.$btnModelHierarchyUp.show();
-            } else {
-                self.$btnModelHierarchyUp.hide();
-            }
+            // if (typeof desc.parentId === 'string') {
+                // self.$btnModelHierarchyUp.show();
+            // } else {
+                // self.$btnModelHierarchyUp.hide();
+            // }
 
-            self._currentNodeParentId = desc.parentId;
+            // self._currentNodeParentId = desc.parentId;
+
+            self._selfPatterns[nodeID] = {children: 1};
 
             self._territoryId = self._client.addUI(self, function (events) {
                 self._eventCallback(events);
@@ -79,69 +82,88 @@ define([
             // Update the territory
             self._client.updateTerritory(self._territoryId, self._selfPatterns);
 
-            self._selfPatterns[nodeId] = {children: 1};
-            self._client.updateTerritory(self._territoryId, self._selfPatterns);
+            // self._selfPatterns[nodeId] = {children: 1};
+            // self._client.updateTerritory(self._territoryId, self._selfPatterns);
         }
     };
 
     // This next function retrieves the relevant node information for the widget
-    AcoreControl.prototype._getObjectDescriptor = function (nodeId) {
-        var node = this._client.getNode(nodeId),
-            objDescriptor;
-        if (node) {
-            objDescriptor = {
-                id: node.getId(),
-                name: node.getAttribute(nodePropertyNames.Attributes.name),
-                childrenIds: node.getChildrenIds(),
-                parentId: node.getParentId(),
-                isConnection: GMEConcepts.isConnection(nodeId)
-            };
-        }
+    // AcoreControl.prototype._getObjectDescriptor = function (nodeId) {
+    //     var node = this._client.getNode(nodeId),
+    //         objDescriptor;
+    //     if (node) {
+    //         objDescriptor = {
+    //             id: node.getId(),
+    //             name: node.getAttribute(nodePropertyNames.Attributes.name),
+    //             childrenIds: node.getChildrenIds(),
+    //             parentId: node.getParentId(),
+    //             isConnection: GMEConcepts.isConnection(nodeId)
+    //         };
+    //     }
 
-        return objDescriptor;
-    };
+    //     return objDescriptor;
+    // };
 
     /* * * * * * * * Node Event Handling * * * * * * * */
     AcoreControl.prototype._eventCallback = function (events) {
-        var i = events ? events.length : 0,
-            event;
+    //     var i = events ? events.length : 0,
+    //         event;
 
-        this._logger.debug('_eventCallback \'' + i + '\' items');
+    //     this._logger.debug('_eventCallback \'' + i + '\' items');
 
-        while (i--) {
-            event = events[i];
-            switch (event.etype) {
+    //     while (i--) {
+    //         event = events[i];
+    //         switch (event.etype) {
 
-            case CONSTANTS.TERRITORY_EVENT_LOAD:
-                this._onLoad(event.eid);
-                break;
-            case CONSTANTS.TERRITORY_EVENT_UPDATE:
-                this._onUpdate(event.eid);
-                break;
-            case CONSTANTS.TERRITORY_EVENT_UNLOAD:
-                this._onUnload(event.eid);
-                break;
-            default:
-                break;
-            }
-        }
+    //         case CONSTANTS.TERRITORY_EVENT_LOAD:
+    //             this._onLoad(event.eid);
+    //             break;
+    //         case CONSTANTS.TERRITORY_EVENT_UPDATE:
+    //             this._onUpdate(event.eid);
+    //             break;
+    //         case CONSTANTS.TERRITORY_EVENT_UNLOAD:
+    //             this._onUnload(event.eid);
+    //             break;
+    //         default:
+    //             break;
+    //         }
+    //     }
 
-        this._logger.debug('_eventCallback \'' + events.length + '\' items - DONE');
-    };
+    //     this._logger.debug('_eventCallback \'' + events.length + '\' items - DONE');
+    // };
 
-    AcoreControl.prototype._onLoad = function (gmeId) {
-        var description = this._getObjectDescriptor(gmeId);
-        this._widget.addNode(description);
-    };
+    // AcoreControl.prototype._onLoad = function (gmeId) {
+    //     var description = this._getObjectDescriptor(gmeId);
+    //     this._widget.addNode(description);
+    // };
+    const self = this;
+         console.log(events);
+         events.forEach(event => {
+             if (event.eid && 
+                 event.eid === self._currentNodeId ) {
+                     if (event.etype == 'load' || event.etype == 'update') {
+                         self._networkRootLoaded = true;
+                     } else {
+                         self.clearSM();
+                         return;
+                     }
+                 }
 
-    AcoreControl.prototype._onUpdate = function (gmeId) {
-        var description = this._getObjectDescriptor(gmeId);
-        this._widget.updateNode(description);
-    };
+         });
+         if (events.length && events[0].etype === 'complete' && self._networkRootLoaded) {
+             // complete means we got all requested data and we do not have to wait for additional load cycles
+             self._initSM();
+         }
+     };
 
-    AcoreControl.prototype._onUnload = function (gmeId) {
-        this._widget.removeNode(gmeId);
-    };
+    // AcoreControl.prototype._onUpdate = function (gmeId) {
+    //     var description = this._getObjectDescriptor(gmeId);
+    //     this._widget.updateNode(description);
+    // };
+
+    // AcoreControl.prototype._onUnload = function (gmeId) {
+    //     this._widget.removeNode(gmeId);
+    // };
 
     AcoreControl.prototype._stateActiveObjectChanged = function (model, activeObjectId) {
         if (this._currentNodeId === activeObjectId) {
@@ -150,6 +172,53 @@ define([
             this.selectedObjectChanged(activeObjectId);
         }
     };
+
+     /* * * * * * * * Machine manipulation functions * * * * * * * */
+     AcoreControl.prototype._initSM = function () {
+         const self = this;
+         //just for the ease of use, lets create a META dictionary
+         const rawMETA = self._client.getAllMetaNodes();
+         const META = {};
+         rawMETA.forEach(node => {
+             META[node.getAttribute('name')] = node.getId(); //we just need the id...
+         });
+         //now we collect all data we need for network visualization
+         //we need our states (names, position, type), need the set of next state (with event names)
+         const smNode = self._client.getNode(self._currentNodeId);
+         const elementIds = smNode.getChildrenIds();
+         const sm = {init: null, states:{}};
+         elementIds.forEach(elementId => {
+             const node = self._client.getNode(elementId);
+             // the simple way of checking type
+             if (node.isTypeOf(META['Places'])) {
+                 //right now we only interested in states...
+                 const state = {name: node.getAttribute('name'), next:{}, position: node.getRegistry('position'), isEnd: node.isTypeOf(META['Start'])};
+                 // one way to check meta-type in the client context - though it does not check for generalization types like State
+                 if ('Init' === self._client.getNode(node.getMetaTypeId()).getAttribute('name')) {
+                     sm.init = elementId;
+                 }
+
+                 // this is in no way optimal, but shows clearly what we are looking for when we collect the data
+                 elementIds.forEach(nextId => {
+                     const nextNode = self._client.getNode(nextId);
+                     if(nextNode.isTypeOf(META['Transitions']) && nextNode.getPointerId('src') === elementId) {
+                         state.next[nextNode.getAttribute('event')] = nextNode.getPointerId('dst');
+                     }
+                 });
+                 sm.states[elementId] = state;
+             }
+         });
+
+         self._widget.initMachine(sm);
+     };
+
+     AcoreControl.prototype.clearSM = function () {
+         const self = this;
+         self._networkRootLoaded = false;
+         self._widget.destroyMachine();
+     };
+
+
 
     /* * * * * * * * Visualizer life cycle callbacks * * * * * * * */
     AcoreControl.prototype.destroy = function () {
@@ -219,26 +288,33 @@ define([
         this._toolbarItems.push(toolBar.addSeparator());
 
         /************** Go to hierarchical parent button ****************/
-        this.$btnModelHierarchyUp = toolBar.addButton({
-            title: 'Go to parent',
-            icon: 'glyphicon glyphicon-circle-arrow-up',
+        // this.$btnModelHierarchyUp = toolBar.addButton({
+            // title: 'Go to parent',
+            // icon: 'glyphicon glyphicon-circle-arrow-up',
+        this.$btnReachCheck = toolBar.addButton({
+            title: 'Check Petrinet reachability properties',
+            icon: 'glyphicon glyphicon-question-sign',
             clickFn: function (/*data*/) {
-                WebGMEGlobal.State.registerActiveObject(self._currentNodeParentId);
+                // WebGMEGlobal.State.registerActiveObject(self._currentNodeParentId);
+                console.log('we need to call our plugin');
             }
         });
-        this._toolbarItems.push(this.$btnModelHierarchyUp);
-        this.$btnModelHierarchyUp.hide();
+        // this._toolbarItems.push(this.$btnModelHierarchyUp);
+        // this.$btnModelHierarchyUp.hide();
+        this._toolbarItems.push(this.$btnReachCheck);
 
-        /************** Checkbox example *******************/
+        /************** Dropdown for event progression *******************/
 
-        this.$cbShowConnection = toolBar.addCheckBox({
-            title: 'toggle checkbox',
-            icon: 'gme icon-gme_diagonal-arrow',
-            checkChangedFn: function (data, checked) {
-                self._logger.debug('Checkbox has been clicked!');
-            }
-        });
-        this._toolbarItems.push(this.$cbShowConnection);
+        // /************** Checkbox example *******************/
+
+        // this.$cbShowConnection = toolBar.addCheckBox({
+        //     title: 'toggle checkbox',
+        //     icon: 'gme icon-gme_diagonal-arrow',
+        //     checkChangedFn: function (data, checked) {
+        //         self._logger.debug('Checkbox has been clicked!');
+        //     }
+        // });
+        // this._toolbarItems.push(this.$cbShowConnection);
 
         this._toolbarInitialized = true;
     };

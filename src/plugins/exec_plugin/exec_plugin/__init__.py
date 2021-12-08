@@ -20,8 +20,9 @@ class exec_plugin(PluginBase):
     def main(self):
         core = self.core
         root_node = self.root_node
-        active_node = self.active_node
-
+        # active_node = self.active_node
+        META = self. META
+        active_node = self.active_node	
         name = core.get_attribute(active_node, 'name')
 
         logger.info('ActiveNode at "{0}" has name {1}'.format(core.get_path(active_node), name))
