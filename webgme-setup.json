@@ -4,11 +4,38 @@
       "exec_plugin": {
         "src": "src/plugins/exec_plugin",
         "test": "test/plugins/exec_plugin"
+      },
+      "ReachCheck": {
+        "src": "src/plugins/ReachCheck",
+        "test": "test/plugins/ReachCheck"
+      },
+      "ClassifyPetriNet": {
+        "src": "src/plugins/ClassifyPetriNet",
+        "test": "test/plugins/ClassifyPetriNet"
+      },
+      "PetriNetCodeGenerator": {
+        "src": "src/plugins/PetriNetCodeGenerator",
+        "test": "test/plugins/PetriNetCodeGenerator"
       }
     },
     "seeds": {
       "tobeseeded": {
         "src": "src/seeds/tobeseeded"
+      },
+      "StateMachine": {
+        "src": "src/seeds/StateMachine"
+      },
+      "petrinets": {
+        "src": "src/seeds/petrinets"
+      },
+      "project": {
+        "src": "src/seeds/project"
+      },
+      "test": {
+        "src": "src/seeds/test"
+      },
+      "PetriNet": {
+        "src": "src/seeds/PetriNet"
       }
     },
     "visualizers": {
@@ -18,6 +45,13 @@
         "panel": "src/visualizers/panels/Acore",
         "secondary": false,
         "widget": "src/visualizers/widgets/Acore"
+      },
+      "SimSM": {
+        "src": "panels/SimSM/SimSMPanel",
+        "title": "SimSM",
+        "panel": "src/visualizers/panels/SimSM",
+        "secondary": false,
+        "widget": "src/visualizers/widgets/SimSM"
       }
     }
   },

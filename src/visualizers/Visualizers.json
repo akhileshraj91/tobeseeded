@@ -4,5 +4,11 @@
     "title": "Acore",
     "panel": "panels/Acore/AcorePanel",
     "DEBUG_ONLY": false
+  },
+  {
+    "id": "SimSM",
+    "title": "SimSM",
+    "panel": "panels/SimSM/SimSMPanel",
+    "DEBUG_ONLY": false
   }
 ]
