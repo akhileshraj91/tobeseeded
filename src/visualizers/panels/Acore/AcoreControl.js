@@ -31,11 +31,11 @@ define([
         this._fireableEvents = null;
 
         this._initWidgetEventHandlers();
-        console.log("Checking Fireable events:", this)
+        // console.log("Checking Fireable events:", this)
 
         // we need to fix the context of this function as it will be called from the widget directly
         this.setFireableEvents = this.setFireableEvents.bind(this);
-        console.log("check fireable events2 : ", this.setFireableEvents  )
+        // console.log("check fireable events2 : ", this.setFireableEvents  )
 
         this._logger.debug('ctor finished');
     }

@@ -154,7 +154,9 @@ define([
 
     SimSMControl.prototype.setFireableEvents = function (events) {
         this._fireableEvents = events;
+        console.log(events)
         if (events && events.length > 1) {
+            console.log(events.length)
             // we need to fill the dropdow button with options
             this.$btnEventSelector.clear();
             events.forEach(event => {
@@ -168,6 +170,7 @@ define([
                 });
             });
         } else if (events && events.length === 0) {
+            console.log(events,events.length)
             this._fireableEvents = null;
         }
 

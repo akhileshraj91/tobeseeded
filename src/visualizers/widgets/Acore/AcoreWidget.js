@@ -43,7 +43,7 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
             const currentElement = elementView.model;
             // console.log(currentElement);
             if (self._webgmeSM) {
-                // console.log(self._webgmeSM.id2state[currentElement.id]);
+                console.log(self._webgmeSM.id2state[currentElement.id]);
                 self._setCurrentState(self._webgmeSM.id2state[currentElement.id]);
             }
         });
@@ -61,7 +61,9 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
         // console.ßlog(machineDescriptor);
 
         self._webgmeSM = machineDescriptor;
-        self._webgmeSM.current = self._webgmeSM.init;
+        // console.log(self._webgmeSM)
+        self._webgmeSM.current = self._webgmeSM.inplaces;
+        // console.log(self._webgmeSM.current)
         self._jointSM.clear();
         const sm = self._webgmeSM;
         sm.id2state = {}; // this dictionary will connect the on-screen id to the state id
@@ -184,12 +186,15 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
                 });
                 link.addTo(self._jointSM);
                 state.jointNext[event] = link;
+                // console.log("...............",link,event,state)
             })
         });
 
         //now refresh the visualization
         self._jointPaper.updateViews();
+        // console.log("This line is executed")
         self._decorateMachine();
+        // console.log("This line is executed")
     };
 
     AcoreWidget.prototype.destroyMachine = function () {
@@ -197,30 +202,62 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
     };
 
     AcoreWidget.prototype.fireEvent = function (event) {
+        console.log("____________1");
         const self = this;
-        const current = self._webgmeSM.states[self._webgmeSM.current];
-        const link = current.jointNext[event];
-        const linkView = link.findView(self._jointPaper);
-        linkView.sendToken(joint.V('circle', { r: 10, fill: 'black' }), {duration:500}, function() {
-           self._webgmeSM.current = current.next[event];
-           self._decorateMachine();
+        self.aux_current = []
+        console.log(self._webgmeSM.current)
+        self._webgmeSM.current.forEach(ID =>{
+            console.log("iteration num");
+            const current = self._webgmeSM.states[ID];
+            if (current.jointNext === undefined){console.log("if is being executed")
+            } else {
+                    console.log("else is being executed");
+                    const link = current.jointNext[event];
+                    const linkView = link.findView(self._jointPaper);
+                    linkView.sendToken(joint.V('circle', { r: 10, fill: 'black' }), {duration:500}, function() {
+                        // console.log(current.next[event]);
+                        console.log(current.next[event]);
+                        self.aux_current.push(current.next[event]);
+                        // self._webgmeSM.current = current.next[event];
+                        console.log(self.aux_current);
+                        // self._decorateMachine();
+                    });
+                    console.log("what is this");
+            }
+            console.log("else got executed");
         });
-
+        console.log("_______________________2")
+        // console.log(self._webgmeSM.current)
+        // self._webgmeSM.current = [];
+        // self.aux_current.forEach(an => {self._webgmeSM.current.push(an)})
+        self._webgmeSM.current = [...self.aux_current];
+        console.log(self._webgmeSM.current)
+        self._decorateMachine(self._webgmeSM.current);
+        console.log("________________________________________3")
 
     };
 
     AcoreWidget.prototype.resetMachine = function () {
-        this._webgmeSM.current = this._webgmeSM.init;
+        console.log(this._webgmeSM)
+        this._webgmeSM.current = this._webgmeSM.inplaces;
         this._decorateMachine();
     };
 
     AcoreWidget.prototype._decorateMachine = function() {
+        // console.log(this._webgmeSM);
         const sm = this._webgmeSM;
+        // console.log(this._webgmeSM.current)
         Object.keys(sm.states).forEach(stateId => {
+            // console.log(sm.current)
+            // console.log(stateId)
             sm.states[stateId].joint.attr('body/stroke', '#333333');
         });
-        sm.states[sm.current].joint.attr('body/stroke', 'blue');
-        sm.setFireableEvents(Object.keys(sm.states[sm.current].next));
+        // console.log(sm.current)
+        sm.current.forEach(initialnode => {sm.states[initialnode].joint.attr('body/stroke', 'blue');
+        // console.log("___________________________",sm.states[initialnode].next)
+        sm.setFireableEvents(Object.keys(sm.states[initialnode].next));})
+        // sm.states[sm.current].joint.attr('body/stroke', 'blue');
+        // sm.setFireableEvents(Object.keys(sm.states[sm.current].next));
     };
 
     AcoreWidget.prototype._setCurrentState = function(newCurrent) {
