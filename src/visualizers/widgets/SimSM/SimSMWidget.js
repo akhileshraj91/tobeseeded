@@ -121,9 +121,11 @@ define(['jointjs', 'css!./styles/SimSMWidget.css'], function (joint) {
             const state = sm.states[stateId];
             console.log(state)
             console.log(sm.states)
+            console.log(state.next)
             Object.keys(state.next).forEach(event => {
                 state.jointNext = state.jointNext || {};
                 console.log(state.jointNext)
+                console.log(sm.states[state.next[event]].joint.id)
                 const link = new joint.shapes.standard.Link({
                     source: {id: state.joint.id},
                     target: {id: sm.states[state.next[event]].joint.id},

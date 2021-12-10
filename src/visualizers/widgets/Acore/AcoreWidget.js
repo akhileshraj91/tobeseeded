@@ -58,7 +58,7 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
     // State Machine manipulating functions called from the controller
     AcoreWidget.prototype.initMachine = function (machineDescriptor) {
         const self = this;
-        console.log(machineDescriptor);
+        // console.ßlog(machineDescriptor);
 
         self._webgmeSM = machineDescriptor;
         self._webgmeSM.current = self._webgmeSM.init;
@@ -100,7 +100,22 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
                             cursor: 'pointer'
                         }
                     }
-                });    
+                });
+
+            } else if (stateId in sm.Transitions){    
+                vertex = new joint.shapes.standard.Rectangle({
+                    position: sm.states[stateId].position,
+                    size: { width: 80, height: 90 },
+                    attrs: {
+                        label : {text:sm.states[stateId].status,
+                            fontWeight: 'bold',
+                        },
+                        body: {
+                            fill: 'none',
+                            cursor: 'pointer'
+                        }
+                    }
+                });       
             } else {
                 vertex = new joint.shapes.standard.Circle({
                     position: sm.states[stateId].position,
@@ -128,17 +143,20 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
         });
 
         // then create the links
-        console.log(sm.Transitions)
-        console.log(sm.states)
-        Object.keys(sm.Transitions).forEach(tranId => {
-            console.log("Transitions are",sm.Transitions)
-            const tran = sm.Transitions[tranId];
-            console.log("Each transition",tran)
-            Object.keys(tran.next).forEach(event => {
-                tran.jointNext = tran.jointNext || {};
+        // console.log(sm.Transitions)
+        // console.log(sm.states)
+        Object.keys(sm.states).forEach(stateId => {
+            // console.log("Transitions are",sm.Transitions)
+            const state = sm.states[stateId];
+            // console.log("Each transition",state)
+            Object.keys(state.next).forEach(event => {
+                state.jointNext = state.jointNext || {};
+                // console.log(event)
+                // console.log(state.next[event])
+                // console.log(sm.Transitions[state.next[event]])
                 const link = new joint.shapes.standard.Link({
-                    source: {id: tran.joint.id},
-                    target: {id: sm.Transitions[tran.next[event]].joint.id},
+                    source: {id: state.joint.id},
+                    target: {id: sm.states[state.next[event]].joint.id},
                     attrs: {
                         line: {
                             strokeWidth: 2

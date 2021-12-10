@@ -31,9 +31,11 @@ define([
         this._fireableEvents = null;
 
         this._initWidgetEventHandlers();
+        console.log("Checking Fireable events:", this)
 
         // we need to fix the context of this function as it will be called from the widget directly
         this.setFireableEvents = this.setFireableEvents.bind(this);
+        console.log("check fireable events2 : ", this.setFireableEvents  )
 
         this._logger.debug('ctor finished');
     }
@@ -188,11 +190,11 @@ define([
 
             if (node.isTypeOf(META['Transitions'])) {
                 //right now we only interested in states...
-                const transition = {name: node.getAttribute('name'), next:{}, position: node.getRegistry('position'), isEnd: node.isTypeOf(META['Arcs'])};
+                const transition = {name: node.getAttribute('name'), status: node.getAttribute('enabled'), next:{}, position: node.getRegistry('position'), isEnd: node.isTypeOf(META['Arcs'])};
                 // one way to check meta-type in the client context - though it does not check for generalization types like State
-                if ('Transitions' === self._client.getNode(node.getMetaTypeId()).getAttribute('name')) {
-                    sm.init = elementId;
-                }
+                // if ('Transitions' === self._client.getNode(node.getMetaTypeId()).getAttribute('name')) {
+                //     sm.init = elementId;
+                // }
 
                 // this is in no way optimal, but shows clearly what we are looking for when we collect the data
                 elementIds.forEach(nextId => {
@@ -204,6 +206,7 @@ define([
                     }
                 });
                 sm.Transitions[elementId] = transition;
+                sm.states[elementId] = transition;
             }
         });
         sm.setFireableEvents = this.setFireableEvents;
