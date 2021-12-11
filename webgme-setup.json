@@ -4,18 +4,6 @@
       "exec_plugin": {
         "src": "src/plugins/exec_plugin",
         "test": "test/plugins/exec_plugin"
-      },
-      "ReachCheck": {
-        "src": "src/plugins/ReachCheck",
-        "test": "test/plugins/ReachCheck"
-      },
-      "ClassifyPetriNet": {
-        "src": "src/plugins/ClassifyPetriNet",
-        "test": "test/plugins/ClassifyPetriNet"
-      },
-      "PetriNetCodeGenerator": {
-        "src": "src/plugins/PetriNetCodeGenerator",
-        "test": "test/plugins/PetriNetCodeGenerator"
       }
     },
     "seeds": {
@@ -24,21 +12,6 @@
       },
       "StateMachine": {
         "src": "src/seeds/StateMachine"
-<<<<<<< HEAD
-      },
-      "petrinets": {
-        "src": "src/seeds/petrinets"
-      },
-      "project": {
-        "src": "src/seeds/project"
-      },
-      "test": {
-        "src": "src/seeds/test"
-      },
-      "PetriNet": {
-        "src": "src/seeds/PetriNet"
-=======
->>>>>>> test
       }
     },
     "visualizers": {

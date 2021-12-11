@@ -58,18 +58,30 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
     // State Machine manipulating functions called from the controller
     AcoreWidget.prototype.initMachine = function (machineDescriptor) {
         const self = this;
-        // console.ßlog(machineDescriptor);
+        // console.log(machineDescriptor);
+        var token = joint.dia.Element.define('token', {
+            attrs: {
+                text: {
+                    fontWeight: 'bold',
+                    fontSize: 20,
+                    refX: 22,
+                    refY: 22
+                }
+            }
+        },{
+            markup: [{tagName: 'text', selector: 'text'}]
+        });
 
         self._webgmeSM = machineDescriptor;
         // console.log(self._webgmeSM)
-        self._webgmeSM.current = self._webgmeSM.inplaces;
+        // self._webgmeSM.current = self._webgmeSM.inplaces;
         // console.log(self._webgmeSM.current)
         self._jointSM.clear();
         const sm = self._webgmeSM;
         sm.id2state = {}; // this dictionary will connect the on-screen id to the state id
         // first add the states
         // console.log("Element keys are",Object.keys(sm.states));
-        Object.keys(sm.states).forEach(stateId => {
+        Object.keys(sm.states).forEach(stateID => {
             // console.log("IDs are: ",stateId);
             // console.log("states are: ",sm.states);
             // console.log("Transitions are:",sm.Transitions);
@@ -77,90 +89,86 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
             // console.log("Init is:",sm.init)
             // console.log("Inplaces are:",sm.inplaces)
             let vertex = null;
+
             // if (sm.init === stateId) {
             // if (sm.inplaces.includes(stateId))
-            if (sm.inplaces[stateId] === stateId){    
-                vertex = new joint.shapes.standard.Circle({
-                    position: sm.states[stateId].position,
-                    size: { width: 40, height: 40 },
-                    attrs: {
-                        label : {text:sm.states[stateId].token,
-                            fontWeight: 'bold',
-                        },
-                        body: {
-                            fill: 'none',
-                            cursor: 'pointer'
-                        }
-                    }
-                });
-            } else if (sm.states[stateId].isEnd) {
-                vertex = new joint.shapes.standard.Circle({
-                    position: sm.states[stateId].position,
-                    size: { width: 30, height: 30 },
-                    attrs: {
-                        body: {
-                            fill: '#999999',
-                            cursor: 'pointer'
-                        }
-                    }
-                });
-
-            } else if (stateId in sm.Transitions){    
-                vertex = new joint.shapes.standard.Rectangle({
-                    position: sm.states[stateId].position,
-                    size: { width: 80, height: 90 },
-                    attrs: {
-                        label : {text:sm.states[stateId].status,
-                            fontWeight: 'bold',
-                        },
-                        body: {
-                            fill: 'none',
-                            cursor: 'pointer'
-                        }
-                    }
-                });       
-            } else {
-                vertex = new joint.shapes.standard.Circle({
-                    position: sm.states[stateId].position,
-                    size: { width: 60, height: 60 },
-                    attrs: {
-                        label : {
-                            text: sm.states[stateId].token,
-                            //event: 'element:label:pointerdown',
-                            fontWeight: 'bold',
-                            //cursor: 'text',
-                            //style: {
-                            //    userSelect: 'text'
-                            //}
-                        },
-                        body: {
-                            strokeWidth: 3,
-                            cursor: 'pointer'
-                        }
-                    }
-                });
+               
+        vertex = new joint.shapes.standard.Circle({
+            position: sm.states[stateID].position,
+            size: { width: 60, height: 60 },
+            attrs: {
+                label : {text:sm.states[stateID].token,
+                    fontWeight: 'bold',
+                },
+                body: {
+                    fill: 'none',
+                    cursor: 'pointer'
+                }
             }
-            vertex.addTo(self._jointSM);
-            sm.states[stateId].joint = vertex;
-            sm.id2state[vertex.id] = stateId;
         });
+        let con = null;
+
+        con = new token({
+            position:sm.states[stateID].position,
+            attrs: {
+                text:{
+                    // text: String(sm.states[stateID].token)
+                }
+            }
+        })
+        vertex.addTo(self._jointSM);
+
+        con.addTo(self._jointSM);
+        sm.states[stateID].joint = vertex;
+        sm.states[stateID].joint_tk = con;
+        sm.id2state[vertex.id] = stateID;
+        });   
 
         // then create the links
         // console.log(sm.Transitions)
         console.log(sm.states);
         sm.TRAN = JSON.parse(JSON.stringify(sm.states))
-        Object.keys(sm.states).forEach(stateId => {
+        Object.keys(sm.Transitions).forEach(tranID => {
+            let vertex = null;
+            vertex = new joint.shapes.standard.Rectangle({
+                position: sm.Transitions[tranID].position,
+                size: { width: 30, height: 60 },
+                attrs: {
+                    label : {
+                        text: sm.Transitions[tranID].name,
+                        //event: 'element:label:pointerdown',
+                        fontWeight: 'bold',
+                        'ref-y': 40
+                        //cursor: 'text',
+                        //style: {
+                        //    userSelect: 'text'
+                        //}
+                    },
+                    body: {
+                        strokeWidth: 3,
+                        fill: 'none'
+                    }
+                }
+            });
+
+            sm.Transitions[tranID].joint = vertex;
+            vertex.addTo(self._jointSM);
+            // pn.places[placeId].joint = vertex;
+            // pn.id2state[vertex.id] = placeId;
+        });
             // console.log("Transitions are",sm.Transitions)
-            const state = sm.states[stateId];
+            // const trans = sm.Transitions[tranID];
             // console.log("Each transition",state)
-            Object.keys(state.next).forEach(event => {
+        Object.keys(sm.states).forEach(SID => {
+            const state = sm.states[SID];
+            Object.keys(state.next).forEach(event =>{
                 state.jointNext = state.jointNext || {};
                 // console.log(event)
                 // console.log(state.next[event])
                 // console.log(sm.Transitions[state.next[event]])
                 const link = new joint.shapes.standard.Link({
                     source: {id: state.joint.id},
-                    target: {id: sm.states[state.next[event]].joint.id},
+                    target: {id: sm.Transitions[state.next[event]].joint.id},
                     attrs: {
                         line: {
                             strokeWidth: 2
@@ -191,6 +199,41 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
                 // console.log("...............",link,event,state)
             })
         });
+
+        Object.keys(sm.Transitions).forEach(TID => {
+            const trans = sm.Transitions[TID];
+            Object.keys(trans.next).forEach(SID => {
+                trans.jointNext = trans.jointNext || {};
+                const link = new joint.shapes.standard.Link({
+                    source: {id: trans.joint.id},
+                    target: {id: sm.states[trans.next[SID]].joint.id},
+                    attrs: {
+                        line: {
+                            strokeWidth: 2
+                        },
+                        wrapper: {
+                            cursor: 'default'
+                        }
+                    },
+                    labels: [{
+                        position: {
+                            distance: 0.5,
+                            offset: 0,
+                            args: {
+                                keepGradient: true,
+                                ensureLegibility: true
+                            }
+                        },
+                        
+                    }]
+                });
+                link.addTo(self._jointSM);
+                trans.jointNext[SID] = link;
+            })
+        });
+
+
+    
 
         //now refresh the visualization
         self._jointPaper.updateViews();

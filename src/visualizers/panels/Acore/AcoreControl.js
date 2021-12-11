@@ -146,7 +146,7 @@ define([
         const self = this;
         //just for the ease of use, lets create a META dictionary
         const rawMETA = self._client.getAllMetaNodes();
-        // console.log(self)
+        console.log(self)
         const META = {};
         rawMETA.forEach(node => {
             META[node.getAttribute('name')] = node.getId();
@@ -159,22 +159,22 @@ define([
         // console.log("######",smNode)
         const elementIds = smNode.getChildrenIds();
         // console.log(elementIds)
-        const sm = {states:{}, inplaces:{}, Transitions:{}, Arcs:{}};
+        const sm = {init:{ps:{},ts:{}}, states:{}, inarcs:{}, outarcs:{}, Transitions:{}};
         elementIds.forEach(elementId => {
             const node = self._client.getNode(elementId);
             // the simple way of checking type
             if (node.isTypeOf(META['Places'])) {
                 //right now we only interested in states...
-                const state = {name: node.getAttribute('name'), token: node.getAttribute('token'), next:{}, position: node.getRegistry('position'), isEnd: node.isTypeOf(META['InPlaces'])};
+                const state = {name: node.getAttribute('name'), token: node.getAttribute('token'), next:{}, position: node.getRegistry('position')};
                 // console.log('####',node)
                 // console.log(state);
                 // one way to check meta-type in the client context - though it does not check for generalization types like State
-                if ('InPlaces' === self._client.getNode(node.getMetaTypeId()).getAttribute('name')) {
-                    // sm.init = elementId;
-                    // sm.inplaces.push(elementId)
-                    sm.inplaces[elementId] = elementId;
-                    // console.log("............",sm)
-                }
+                // if ( === self._client.getNode(node.getMetaTypeId()).getAttribute('name')) {
+                //     // sm.init = elementId;
+                //     // sm.inplaces.push(elementId)
+                //     sm.inplaces[elementId] = elementId;
+                //     // console.log("............",sm)
+                // }
 
                 // this is in no way optimal, but shows clearly what we are looking for when we collect the data
                 elementIds.forEach(nextId => {
@@ -183,15 +183,16 @@ define([
                     if(nextNode.isTypeOf(META['Arcs']) && nextNode.getPointerId('src') === elementId) {
                         // console.log(elementId,"connected to ",nextNode);
                         // console.log(nextNode.getAttribute('event'), '@@@@',nextNode.getPointerId('dst') )
-                        state.next[nextNode.getAttribute('event')] = nextNode.getPointerId('dst');
+                        state.next[nextNode.getPointerId('dst')] = nextNode.getPointerId('dst');
                     }
                 });
                 sm.states[elementId] = state;
+                // console.log(sm);
             }
 
             if (node.isTypeOf(META['Transitions'])) {
                 //right now we only interested in states...
-                const transition = {name: node.getAttribute('name'), status: node.getAttribute('enabled'), next:{}, position: node.getRegistry('position'), isEnd: node.isTypeOf(META['Arcs'])};
+                const transition = {name: node.getAttribute('name'), status: node.getAttribute('enabled'), next:{}, position: node.getRegistry('position'), inplaces:{}};
                 // one way to check meta-type in the client context - though it does not check for generalization types like State
                 // if ('Transitions' === self._client.getNode(node.getMetaTypeId()).getAttribute('name')) {
                 //     sm.init = elementId;
@@ -202,16 +203,23 @@ define([
                     const nextNode = self._client.getNode(nextId);
                     if(nextNode.isTypeOf(META['Arcs']) && nextNode.getPointerId('src') === elementId) {
                         // console.log(nextNode.getAttribute('event'),elementId)
-                        transition.next[nextNode.getAttribute('event')] = nextNode.getPointerId('dst');
+                        transition.next[nextNode.getPointerId('dst')] = nextNode.getPointerId('dst');
                         // console.log("???????????",transition)
                     }
                 });
                 sm.Transitions[elementId] = transition;
-                sm.states[elementId] = transition;
+                // sm.states[elementId] = transition;
             }
+            console.log(sm)
+        });
+        Object.keys(sm.states).forEach(stateID =>{
+        	Object.keys(sm.states[stateID].next).forEach(tranID =>{
+        		sm.Transitions[tranID].inplaces[stateID] = stateID;
+        	});
         });
         sm.setFireableEvents = this.setFireableEvents;
-
+        sm.init.ps = JSON.parse(JSON.stringify(sm.states));
+        sm.init.ts = JSON.parse(JSON.stringify(sm.Transitions));
         self._widget.initMachine(sm);
     };
 
