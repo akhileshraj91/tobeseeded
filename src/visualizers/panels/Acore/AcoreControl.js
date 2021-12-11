@@ -31,9 +31,11 @@ define([
         this._fireableEvents = null;
 
         this._initWidgetEventHandlers();
+        // console.log("Checking Fireable events:", this)
 
         // we need to fix the context of this function as it will be called from the widget directly
         this.setFireableEvents = this.setFireableEvents.bind(this);
+        // console.log("check fireable events2 : ", this.setFireableEvents  )
 
         this._logger.debug('ctor finished');
     }
@@ -50,7 +52,11 @@ define([
     // defines the parts of the project that the visualizer is interested in
     // (this allows the browser to then only load those relevant parts).
     AcoreControl.prototype.selectedObjectChanged = function (nodeId) {
-        var self = this;
+        var desc = this._getObjectDescriptor(nodeId),
+        self = this;
+
+        self._logger.debug('activeObject nodeId \'' + nodeId + '\'');
+        self._initialLoaded = true;
 
         // Remove current territory patterns
         if (self._currentNodeId) {
@@ -59,12 +65,13 @@ define([
         }
 
         self._currentNodeId = nodeId;
+        self._currentNodeParentId = undefined;
 
         if (typeof self._currentNodeId === 'string') {
             // Put new node's info into territory rules
             self._selfPatterns = {};
             self._selfPatterns[nodeId] = {children: 1};  // Territory "rule"
-
+            self._widget.setTitle(desc.name.toUpperCase());    
             self._territoryId = self._client.addUI(self, function (events) {
                 self._eventCallback(events);
             });
@@ -74,10 +81,38 @@ define([
         }
     };
 
+    AcoreControl.prototype._getObjectDescriptor = function (nodeId) {
+        var node = this._client.getNode(nodeId),
+            objDescriptor;
+        if (node) {
+            var metaId = node.getBaseTypeId();
+            var metaNode = this._client.getNode(metaId);
+            if (metaNode !== null) {
+                var metaType = metaNode.getAttribute('name'); 
+            } else {
+                var metaType = null;
+            }
+            objDescriptor = {
+                id: node.getId(),
+                name: node.getAttribute(nodePropertyNames.Attributes.name),
+                childrenIds: node.getChildrenIds(),
+                parentId: node.getParentId(),
+                isConnection: GMEConcepts.isConnection(nodeId),
+                type: metaType 
+            };
+            if (objDescriptor.isConnection) {
+                objDescriptor.src = node.getPointerId('src');
+                objDescriptor.dst = node.getPointerId('dst');
+            }
+        }
+
+        return objDescriptor;
+    };
+
     /* * * * * * * * Node Event Handling * * * * * * * */
     AcoreControl.prototype._eventCallback = function (events) {
         const self = this;
-        console.log(events);
+        // console.log(events);
         events.forEach(event => {
             if (event.eid && 
                 event.eid === self._currentNodeId ) {
@@ -111,34 +146,68 @@ define([
         const self = this;
         //just for the ease of use, lets create a META dictionary
         const rawMETA = self._client.getAllMetaNodes();
+        // console.log(self)
         const META = {};
         rawMETA.forEach(node => {
-            META[node.getAttribute('name')] = node.getId(); //we just need the id...
+            META[node.getAttribute('name')] = node.getId();
+ //we just need the id...
         });
+        // console.log("............",META)
         //now we collect all data we need for network visualization
         //we need our states (names, position, type), need the set of next state (with event names)
         const smNode = self._client.getNode(self._currentNodeId);
+        // console.log("######",smNode)
         const elementIds = smNode.getChildrenIds();
-        const sm = {init: null, states:{}};
+        // console.log(elementIds)
+        const sm = {states:{}, inplaces:{}, Transitions:{}, Arcs:{}};
         elementIds.forEach(elementId => {
             const node = self._client.getNode(elementId);
             // the simple way of checking type
-            if (node.isTypeOf(META['State'])) {
+            if (node.isTypeOf(META['Places'])) {
                 //right now we only interested in states...
-                const state = {name: node.getAttribute('name'), next:{}, position: node.getRegistry('position'), isEnd: node.isTypeOf(META['End'])};
+                const state = {name: node.getAttribute('name'), token: node.getAttribute('token'), next:{}, position: node.getRegistry('position'), isEnd: node.isTypeOf(META['InPlaces'])};
+                // console.log('####',node)
+                // console.log(state);
                 // one way to check meta-type in the client context - though it does not check for generalization types like State
-                if ('Init' === self._client.getNode(node.getMetaTypeId()).getAttribute('name')) {
-                    sm.init = elementId;
+                if ('InPlaces' === self._client.getNode(node.getMetaTypeId()).getAttribute('name')) {
+                    // sm.init = elementId;
+                    // sm.inplaces.push(elementId)
+                    sm.inplaces[elementId] = elementId;
+                    // console.log("............",sm)
                 }
 
                 // this is in no way optimal, but shows clearly what we are looking for when we collect the data
                 elementIds.forEach(nextId => {
                     const nextNode = self._client.getNode(nextId);
-                    if(nextNode.isTypeOf(META['Transition']) && nextNode.getPointerId('src') === elementId) {
+                    // console.log(nextId,"........",nextNode, elementId)
+                    if(nextNode.isTypeOf(META['Arcs']) && nextNode.getPointerId('src') === elementId) {
+                        // console.log(elementId,"connected to ",nextNode);
+                        // console.log(nextNode.getAttribute('event'), '@@@@',nextNode.getPointerId('dst') )
                         state.next[nextNode.getAttribute('event')] = nextNode.getPointerId('dst');
                     }
                 });
                 sm.states[elementId] = state;
+            }
+
+            if (node.isTypeOf(META['Transitions'])) {
+                //right now we only interested in states...
+                const transition = {name: node.getAttribute('name'), status: node.getAttribute('enabled'), next:{}, position: node.getRegistry('position'), isEnd: node.isTypeOf(META['Arcs'])};
+                // one way to check meta-type in the client context - though it does not check for generalization types like State
+                // if ('Transitions' === self._client.getNode(node.getMetaTypeId()).getAttribute('name')) {
+                //     sm.init = elementId;
+                // }
+
+                // this is in no way optimal, but shows clearly what we are looking for when we collect the data
+                elementIds.forEach(nextId => {
+                    const nextNode = self._client.getNode(nextId);
+                    if(nextNode.isTypeOf(META['Arcs']) && nextNode.getPointerId('src') === elementId) {
+                        // console.log(nextNode.getAttribute('event'),elementId)
+                        transition.next[nextNode.getAttribute('event')] = nextNode.getPointerId('dst');
+                        // console.log("???????????",transition)
+                    }
+                });
+                sm.Transitions[elementId] = transition;
+                sm.states[elementId] = transition;
             }
         });
         sm.setFireableEvents = this.setFireableEvents;

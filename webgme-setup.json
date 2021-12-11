@@ -24,6 +24,7 @@
       },
       "StateMachine": {
         "src": "src/seeds/StateMachine"
+<<<<<<< HEAD
       },
       "petrinets": {
         "src": "src/seeds/petrinets"
@@ -36,6 +37,8 @@
       },
       "PetriNet": {
         "src": "src/seeds/PetriNet"
+=======
+>>>>>>> test
       }
     },
     "visualizers": {

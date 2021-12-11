@@ -10,10 +10,13 @@ var config = require('webgme/config/config.default'),
 config.plugin.basePaths.push(__dirname + '/../src/plugins');
 config.seedProjects.basePaths.push(__dirname + '/../src/seeds/tobeseeded');
 config.seedProjects.basePaths.push(__dirname + '/../src/seeds/StateMachine');
+<<<<<<< HEAD
 config.seedProjects.basePaths.push(__dirname + '/../src/seeds/petrinets');
 config.seedProjects.basePaths.push(__dirname + '/../src/seeds/project');
 config.seedProjects.basePaths.push(__dirname + '/../src/seeds/test');
 config.seedProjects.basePaths.push(__dirname + '/../src/seeds/PetriNet');
+=======
+>>>>>>> test
 
 
 

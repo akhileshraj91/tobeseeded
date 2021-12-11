@@ -43,7 +43,7 @@ define(['jointjs', 'css!./styles/SimSMWidget.css'], function (joint) {
             const currentElement = elementView.model;
             // console.log(currentElement);
             if (self._webgmeSM) {
-                // console.log(self._webgmeSM.id2state[currentElement.id]);
+                console.log(self._webgmeSM.id2state[currentElement.id]);
                 self._setCurrentState(self._webgmeSM.id2state[currentElement.id]);
             }
         });
@@ -119,8 +119,13 @@ define(['jointjs', 'css!./styles/SimSMWidget.css'], function (joint) {
         // then create the links
         Object.keys(sm.states).forEach(stateId => {
             const state = sm.states[stateId];
+            console.log(state)
+            console.log(sm.states)
+            console.log(state.next)
             Object.keys(state.next).forEach(event => {
                 state.jointNext = state.jointNext || {};
+                console.log(state.jointNext)
+                console.log(sm.states[state.next[event]].joint.id)
                 const link = new joint.shapes.standard.Link({
                     source: {id: state.joint.id},
                     target: {id: sm.states[state.next[event]].joint.id},
@@ -165,11 +170,17 @@ define(['jointjs', 'css!./styles/SimSMWidget.css'], function (joint) {
 
     SimSMWidget.prototype.fireEvent = function (event) {
         const self = this;
+        console.log(self._webgmeSM.current)
         const current = self._webgmeSM.states[self._webgmeSM.current];
+        console.log(event)
         const link = current.jointNext[event];
+        console.log("checkinh jointnext is crazy",link)
         const linkView = link.findView(self._jointPaper);
         linkView.sendToken(joint.V('circle', { r: 10, fill: 'black' }), {duration:500}, function() {
+           // console.log(current)
            self._webgmeSM.current = current.next[event];
+           console.log(self._webgmeSM.current)
+           console.log("__________________________________________________________")
            self._decorateMachine();
         });
 
@@ -183,10 +194,13 @@ define(['jointjs', 'css!./styles/SimSMWidget.css'], function (joint) {
 
     SimSMWidget.prototype._decorateMachine = function() {
         const sm = this._webgmeSM;
+        console.log(sm);
         Object.keys(sm.states).forEach(stateId => {
             sm.states[stateId].joint.attr('body/stroke', '#333333');
         });
+        console.log(sm.current)
         sm.states[sm.current].joint.attr('body/stroke', 'blue');
+        console.log(sm.states[sm.current].next)
         sm.setFireableEvents(Object.keys(sm.states[sm.current].next));
     };
 
