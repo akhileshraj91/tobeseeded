@@ -258,13 +258,13 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
         const sm = this._webgmeSM;
         // console.log(sm);
         Object.keys(sm.Transitions[event].inplaces).forEach(ID =>{
-            console.log(ID);
+            // console.log(ID);
             sm.states[ID].token -= 1;
             sm.states[ID].joint_tk.attr('text/text', String(sm.states[ID].token));
             const link = sm.states[ID].jointNext[event];
             const linkView = link.findView(self._jointPaper);
             // console.log(link, linkView)
-            linkView.sendToken(joint.V('circle',{r: 5, fill: 'black'}), {duration: 500}, function() {});
+            linkView.sendToken(joint.V('circle',{r: 5, fill: 'black'}), {duration: 300}, function() {});
         });
         setTimeout(function(){
             Object.keys(sm.Transitions[event].next).forEach(out_id =>{
@@ -272,10 +272,10 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
                 sm.states[out_id].joint_tk.attr('text/text', String(sm.states[out_id].token));
                 const link = sm.Transitions[event].jointNext[out_id];
                 const linkView = link.findView(self._jointPaper);
-                linkView.sendToken(joint.V('circle', { r: 5, fill: 'black' }), {duration:500}, function() {});
+                linkView.sendToken(joint.V('circle', { r: 5, fill: 'black' }), {duration:300}, function() {});
             });
             self._decorateMachine();
-        }, 500)            // if (cur.jointNext === undefined){
+        }, 300)            // if (cur.jointNext === undefined){
             // } else {
                     // console.log("else is being executed");
                     // const link = cur.jointNext[event];
@@ -305,10 +305,10 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
     };
 
     AcoreWidget.prototype.resetMachine = function () {
-        console.log(this._webgmeSM);
+        // console.log(this._webgmeSM);
         this._webgmeSM.states = JSON.parse(JSON.stringify(this._webgmeSM.init.ps));
         this._webgmeSM.Transitions = JSON.parse(JSON.stringify(this._webgmeSM.init.ts));
-        console.log(this._webgmeSM.states, this._webgmeSM.Transitions);
+        // console.log(this._webgmeSM.states, this._webgmeSM.Transitions);
         this.initMachine(this._webgmeSM);
     };
 
@@ -340,7 +340,7 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
             }
             sm.Transitions[TID].EN = enabled
         });
-        console.log(enabledTransObj)
+        // console.log(enabledTransObj)
         sm.setFireableEvents(enabledTransObj);
     };
 

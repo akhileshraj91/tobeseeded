@@ -193,7 +193,7 @@ define([
             if (node.isTypeOf(META['Transitions'])) {
                 //right now we only interested in states...
                 const transition = {name: node.getAttribute('name'), EN: null, next:{}, position: node.getRegistry('position'), inplaces:{}};
-                console.log(node.getAttribute('name'))
+                // console.log(node.getAttribute('name'))
                 // one way to check meta-type in the client context - though it does not check for generalization types like State
                 // if ('Transitions' === self._client.getNode(node.getMetaTypeId()).getAttribute('name')) {
                 //     sm.init = elementId;
@@ -232,12 +232,12 @@ define([
 
     AcoreControl.prototype.setFireableEvents = function (EVENTS) {
         this._fireableEvents = EVENTS;
-        console.log(EVENTS)
+        // console.log(EVENTS)
         if (EVENTS && Object.keys(EVENTS).length >= 1) {
             // we need to fill the dropdow button with options
             this.$btnEventSelector.clear();
             Object.keys(EVENTS).forEach(EVENT => {
-            	console.log(EVENT)
+            	// console.log(EVENT)
                 this.$btnEventSelector.addButton({
                     text: EVENTS[EVENT],
                     title: 'fire event: '+ EVENTS[EVENT],

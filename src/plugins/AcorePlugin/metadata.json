@@ -1,6 +1,6 @@
 {
-  "id": "exec_plugin",
-  "name": "exec_plugin",
+  "id": "AcorePlugin",
+  "name": "AcorePlugin",
   "version": "0.1.0",
   "description": "",
   "icon": {

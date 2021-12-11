@@ -1,9 +1,9 @@
 {
   "components": {
     "plugins": {
-      "exec_plugin": {
-        "src": "src/plugins/exec_plugin",
-        "test": "test/plugins/exec_plugin"
+      "AcorePlugin": {
+        "src": "src/plugins/AcorePlugin",
+        "test": "test/plugins/AcorePlugin"
       }
     },
     "seeds": {

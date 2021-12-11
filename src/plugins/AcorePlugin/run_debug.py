@@ -15,9 +15,9 @@ import signal
 import atexit
 import logging
 from webgme_bindings import WebGME
-from PetriNetCodeGenerator import PetriNetCodeGenerator
+from AcorePlugin import AcorePlugin
 
-logger = logging.getLogger('PetriNetCodeGenerator')
+logger = logging.getLogger('AcorePlugin')
 
 # Modify these or add option or parse from sys.argv (as in done in run_plugin.py)
 PORT = '5555'
@@ -51,7 +51,7 @@ def exit_handler():
 atexit.register(exit_handler)
 
 commit_hash = webgme.project.get_branch_hash(BRANCH_NAME)
-plugin = PetriNetCodeGenerator(webgme, commit_hash, BRANCH_NAME, ACTIVE_NODE_PATH, ACTIVE_SELECTION_PATHS, NAMESPACE)
+plugin = AcorePlugin(webgme, commit_hash, BRANCH_NAME, ACTIVE_NODE_PATH, ACTIVE_SELECTION_PATHS, NAMESPACE)
 
 # Do the work
 plugin.main()
