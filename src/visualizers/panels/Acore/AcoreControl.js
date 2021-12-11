@@ -146,7 +146,7 @@ define([
         const self = this;
         //just for the ease of use, lets create a META dictionary
         const rawMETA = self._client.getAllMetaNodes();
-        console.log(self)
+        // console.log(self)
         const META = {};
         rawMETA.forEach(node => {
             META[node.getAttribute('name')] = node.getId();
@@ -165,7 +165,7 @@ define([
             // the simple way of checking type
             if (node.isTypeOf(META['Places'])) {
                 //right now we only interested in states...
-                const state = {name: node.getAttribute('name'), token: node.getAttribute('token'), next:{}, position: node.getRegistry('position')};
+                const state = {name: node.getAttribute('name'), token: node.getAttribute('token'), next:{}, position: node.getRegistry('position'), setFireableEvents: null};
                 // console.log('####',node)
                 // console.log(state);
                 // one way to check meta-type in the client context - though it does not check for generalization types like State
@@ -192,7 +192,8 @@ define([
 
             if (node.isTypeOf(META['Transitions'])) {
                 //right now we only interested in states...
-                const transition = {name: node.getAttribute('name'), status: node.getAttribute('enabled'), next:{}, position: node.getRegistry('position'), inplaces:{}};
+                const transition = {name: node.getAttribute('name'), EN: null, next:{}, position: node.getRegistry('position'), inplaces:{}};
+                console.log(node.getAttribute('name'))
                 // one way to check meta-type in the client context - though it does not check for generalization types like State
                 // if ('Transitions' === self._client.getNode(node.getMetaTypeId()).getAttribute('name')) {
                 //     sm.init = elementId;
@@ -210,7 +211,7 @@ define([
                 sm.Transitions[elementId] = transition;
                 // sm.states[elementId] = transition;
             }
-            console.log(sm)
+            // console.log(sm)
         });
         Object.keys(sm.states).forEach(stateID =>{
         	Object.keys(sm.states[stateID].next).forEach(tranID =>{
@@ -229,23 +230,28 @@ define([
         self._widget.destroyMachine();
     };
 
-    AcoreControl.prototype.setFireableEvents = function (events) {
-        this._fireableEvents = events;
-        if (events && events.length > 1) {
+    AcoreControl.prototype.setFireableEvents = function (EVENTS) {
+        this._fireableEvents = EVENTS;
+        console.log(EVENTS)
+        if (EVENTS && Object.keys(EVENTS).length >= 1) {
             // we need to fill the dropdow button with options
             this.$btnEventSelector.clear();
-            events.forEach(event => {
+            Object.keys(EVENTS).forEach(EVENT => {
+            	console.log(EVENT)
                 this.$btnEventSelector.addButton({
-                    text: event,
-                    title: 'fire event: '+ event,
-                    data: {event: event},
+                    text: EVENTS[EVENT],
+                    title: 'fire event: '+ EVENTS[EVENT],
+                    data: {EVENT: EVENT},
                     clickFn: data => {
-                        this._widget.fireEvent(data.event);
+                        this._widget.fireEvent(data.EVENT);
                     }
                 });
             });
-        } else if (events && events.length === 0) {
+        } else if (EVENTS && Object.keys(EVENTS).length === 0) {
             this._fireableEvents = null;
+            setTimeout(function(){
+                window.alert("Deadlock Reached... Please Reset to continue...");
+            }, 550); 
         }
 
         this._displayToolbarItems();

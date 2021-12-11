@@ -93,41 +93,43 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
             // if (sm.init === stateId) {
             // if (sm.inplaces.includes(stateId))
                
-        vertex = new joint.shapes.standard.Circle({
-            position: sm.states[stateID].position,
-            size: { width: 60, height: 60 },
-            attrs: {
-                label : {text:sm.states[stateID].token,
-                    fontWeight: 'bold',
-                },
-                body: {
-                    fill: 'none',
-                    cursor: 'pointer'
+            vertex = new joint.shapes.standard.Circle({
+                position: sm.states[stateID].position,
+                size: { width: 60, height: 60 },
+                attrs: {
+                    label : {
+                        // text:sm.states[stateID].name,
+                        // fontWeight: 'bold',
+                    },
+                    body: {
+                        fill: 'none',
+                        cursor: 'pointer'
+                    }
                 }
-            }
-        });
-        let con = null;
+            });
+            let con = null;
 
-        con = new token({
-            position:sm.states[stateID].position,
-            attrs: {
-                text:{
-                    // text: String(sm.states[stateID].token)
+            con = new token({
+                position:sm.states[stateID].position,
+                attrs: {
+                    text:{
+                        text: String(sm.states[stateID].token)
+                    }
                 }
-            }
-        })
-        vertex.addTo(self._jointSM);
+            })
+            vertex.addTo(self._jointSM);
 
-        con.addTo(self._jointSM);
-        sm.states[stateID].joint = vertex;
-        sm.states[stateID].joint_tk = con;
-        sm.id2state[vertex.id] = stateID;
+            con.addTo(self._jointSM);
+            sm.states[stateID].joint = vertex;
+            sm.states[stateID].joint_tk = con;
+            sm.id2state[vertex.id] = stateID;
         });   
 
         // then create the links
         // console.log(sm.Transitions)
-        console.log(sm.states);
-        sm.TRAN = JSON.parse(JSON.stringify(sm.states))
+        // console.log("__________________________________________________",sm.states)
+
+        sm.TRAN = JSON.parse(JSON.stringify(sm.Transitions))
         Object.keys(sm.Transitions).forEach(tranID => {
             let vertex = null;
             vertex = new joint.shapes.standard.Rectangle({
@@ -156,6 +158,8 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
             // pn.places[placeId].joint = vertex;
             // pn.id2state[vertex.id] = placeId;
         });
+        // console.log("__________________________________________________",sm.Transitions)
+
             // console.log("Transitions are",sm.Transitions)
             // const trans = sm.Transitions[tranID];
             // console.log("Each transition",state)
@@ -186,12 +190,6 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
                                 ensureLegibility: true
                             }
                         },
-                        attrs: {
-                            text: {
-                                text: event,
-                                fontWeight: 'bold'
-                            }
-                        }
                     }]
                 });
                 link.addTo(self._jointSM);
@@ -199,6 +197,9 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
                 // console.log("...............",link,event,state)
             })
         });
+
+        // console.log("__________________________________________________",sm.states)
+
 
         Object.keys(sm.Transitions).forEach(TID => {
             const trans = sm.Transitions[TID];
@@ -229,8 +230,11 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
                 });
                 link.addTo(self._jointSM);
                 trans.jointNext[SID] = link;
+                // console.log(trans)
             })
         });
+        // console.log("__________________________________________________",sm.Transitions)
+
 
 
     
@@ -238,7 +242,7 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
         //now refresh the visualization
         self._jointPaper.updateViews();
         // console.log("This line is executed")
-        console.log(sm.states);
+        // console.log(sm.states);
 
         self._decorateMachine();
         // console.log("This line is executed")
@@ -251,70 +255,109 @@ define(['jointjs', 'css!./styles/AcoreWidget.css'], function (joint) {
     AcoreWidget.prototype.fireEvent = function (event) {
         // console.log("____________1");
         const self = this;
-        const aux_current = {};
-        console.log(self._webgmeSM.current);
-        Object.keys(self._webgmeSM.current).forEach(ID =>{
-            console.log("iteration num");
-            const cur = self._webgmeSM.states[ID];
-            if (cur.jointNext === undefined){
-            } else {
-                    // console.log("else is being executed");
-                    const link = cur.jointNext[event];
-                    const linkView = link.findView(self._jointPaper);
-                    linkView.sendToken(joint.V('circle', { r: 10, fill: 'black' }), {duration:500}, function() {
-                        // console.log(current.next[event]);
-                    console.log(cur.next[event]);
-                    aux_current[cur.next[event]] = cur.next[event];
-                        // self._webgmeSM.current = current.next[event];
-                    console.log(aux_current);
-                        // self._decorateMachine();
-                    });
-                    // console.log("what is this");
-            }
-            // console.log("else got executed");
+        const sm = this._webgmeSM;
+        // console.log(sm);
+        Object.keys(sm.Transitions[event].inplaces).forEach(ID =>{
+            console.log(ID);
+            sm.states[ID].token -= 1;
+            sm.states[ID].joint_tk.attr('text/text', String(sm.states[ID].token));
+            const link = sm.states[ID].jointNext[event];
+            const linkView = link.findView(self._jointPaper);
+            // console.log(link, linkView)
+            linkView.sendToken(joint.V('circle',{r: 5, fill: 'black'}), {duration: 500}, function() {});
         });
+        setTimeout(function(){
+            Object.keys(sm.Transitions[event].next).forEach(out_id =>{
+                sm.states[out_id].token += 1;
+                sm.states[out_id].joint_tk.attr('text/text', String(sm.states[out_id].token));
+                const link = sm.Transitions[event].jointNext[out_id];
+                const linkView = link.findView(self._jointPaper);
+                linkView.sendToken(joint.V('circle', { r: 5, fill: 'black' }), {duration:500}, function() {});
+            });
+            self._decorateMachine();
+        }, 500)            // if (cur.jointNext === undefined){
+            // } else {
+                    // console.log("else is being executed");
+                    // const link = cur.jointNext[event];
+                    // const linkView = link.findView(self._jointPaper);
+                    // linkView.sendToken(joint.V('circle', { r: 10, fill: 'black' }), {duration:500}, function() {
+                    //     // console.log(current.next[event]);
+                    // console.log(cur.next[event]);
+                    // aux_current[cur.next[event]] = cur.next[event];
+                    //     // self._webgmeSM.current = current.next[event];
+                    // console.log(aux_current);
+                    //     // self._decorateMachine();
+                    // });
+                    // console.log("what is this");
+            // }
+            // console.log("else got executed");
+        // });
         // console.log("_______________________2");
         // console.log(self._webgmeSM.current)
         // self._webgmeSM.current = [];
         // self.aux_current.forEach(an => {self._webgmeSM.current.push(an)})
         // console.log(self.aux_current);
-        this._webgmeSM.current = aux_current;
-        console.log(this._webgmeSM.current);
-        self._decorateMachine();
-        console.log("________________________________________fireEvent Executed")
+        // this._webgmeSM.current = aux_current;
+        // console.log(this._webgmeSM.current);
+        // self._decorateMachine();
+        // console.log("________________________________________fireEvent Executed")
 
     };
 
     AcoreWidget.prototype.resetMachine = function () {
         console.log(this._webgmeSM);
-        this._webgmeSM.current = this._webgmeSM.inplaces;
-        console.log(this._webgmeSM.current);
-        this._decorateMachine();
+        this._webgmeSM.states = JSON.parse(JSON.stringify(this._webgmeSM.init.ps));
+        this._webgmeSM.Transitions = JSON.parse(JSON.stringify(this._webgmeSM.init.ts));
+        console.log(this._webgmeSM.states, this._webgmeSM.Transitions);
+        this.initMachine(this._webgmeSM);
     };
 
     AcoreWidget.prototype._decorateMachine = function() {
-        const sm = JSON.parse(JSON.stringify(this._webgmeSM));
+        const sm = this._webgmeSM;
+        var enabledTransObj = {};
         // console.log(this._webgmeSM,sm);
         // console.log(sm.current,sm);
-        console.log(sm.states)
-        Object.keys(sm.states).forEach(stateId => {
-            console.log("check whether this is printing")
-            sm.states[stateId].joint.attr('body/stroke', '#333333');
+        // console.log(enabledTransObj);
+        // console.log(sm.states);
+        // console.log(sm.Transitions);
+        Object.keys(sm.Transitions).forEach(TID => {
+            // console.log("check whether this is printing")
+            var enabled = true;
+            Object.keys(sm.Transitions[TID].inplaces).forEach(pid => {
+                if (sm.states[pid].token <= 0){
+                    enabled = false;
+                }
+            });
+            if (Object.keys(sm.Transitions[TID].inplaces).length === 0){
+                enabled = false
+            }
+            if (enabled){
+                sm.Transitions[TID].joint.attr('body/stroke', 'blue');
+                enabledTransObj[TID] = sm.Transitions[TID].name;
+            }
+            else{
+                sm.Transitions[TID].joint.attr('body/stroke', '#333333');
+            }
+            sm.Transitions[TID].EN = enabled
         });
-        console.log(sm.current)
-        console.log(Object.keys(sm.current).length===0)
-        Object.keys(sm.current).forEach(curinpnode => {
-        console.log(curinpnode);
-        console.log(sm.states[curinpnode].joint.attr('body/stroke'));
-        sm.states[curinpnode].joint.attr('body/stroke', 'blue');
-        sm.setFireableEvents(Object.keys(sm.states[curinpnode].next));
-        });
+        console.log(enabledTransObj)
+        sm.setFireableEvents(enabledTransObj);
     };
 
-    AcoreWidget.prototype._setCurrentState = function(newCurrent) {
-        this._webgmeSM.current = newCurrent;
-        this._decorateMachine();
-    };
+    //     console.log(sm.current)
+    //     console.log(Object.keys(sm.current).length===0)
+    //     Object.keys(sm.current).forEach(curinpnode => {
+    //     console.log(curinpnode);
+    //     console.log(sm.states[curinpnode].joint.attr('body/stroke'));
+    //     sm.states[curinpnode].joint.attr('body/stroke', 'blue');
+    //     sm.setFireableEvents(Object.keys(sm.states[curinpnode].next));
+    //     });
+    // };
+
+    // AcoreWidget.prototype._setCurrentState = function(newCurrent) {
+    //     this._webgmeSM.current = newCurrent;
+    //     this._decorateMachine();
+    // };
     
 
     /* * * * * * * * Visualizer event handlers * * * * * * * */
