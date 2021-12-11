@@ -17,6 +17,7 @@ logger.addHandler(handler)
 
 
 class ReachCheck(PluginBase):
+    logger.info("when does this execute?")
     def main(self):
         core = self.core
         root_node = self.root_node
