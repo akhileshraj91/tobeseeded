@@ -18,204 +18,115 @@ logger.addHandler(handler)
 
 class AcorePlugin(PluginBase):
     def main(self):
-    	logger.info("Test Printing")
-        core = self.core
-        root_node = self.root_node
         active_node = self.active_node
+        core = self.core
+        logger = self.logger
         META = self.META
-
-        name = core.get_attribute(active_node, 'name')
-
-        logger.info('ActiveNode at "{0}" has name {1}'.format(core.get_path(active_node), name))
-
-        # the children of the PetriNet
-        children = core.load_children(active_node)
-
-        # Get all of the requested metaType
-        def getAllOfMetaType(metaType):
-            vals = []
-            for c in children:
-                if core.is_type_of(c, META[metaType]):
-                    vals.append(c)
-            return vals
-
-        # get pairs of transitions for checking free choice petrinet 
-        def getTransitionPairs(transitions):
-            return list(cmb(range(len(transitions)), 2))
-
-        # gets the set of arcs of the specified type for the target (place or transition)
-        # first gets all arctype elements then filters by the target 
-        # returns array of ins or outs (places or transitions) for the target
-        # placeType: string of either P2T or T2P
-        def getSetOf(arcType, target):
-            # flag for transition or place
-            isP = 1 # assume target is place
-            if core.is_type_of(target, META['Transition']):
-                isP = 0 # target is transition
-
-            if arcType == "P2T": # ins, target is dst    
-                pts =[]
-                # if target is transition --> pts has inplaces
-                # if target is place --> pts has out transitions
-                ptArcs = getAllOfMetaType("P2T")
-                logger.info("ptArcs {}, isP {}".format(ptArcs, isP))
-                # filter by target
-                for i in ptArcs:
-                    if isP: # target is place, add transition
-                        if core.get_pointer_path(i, 'src') == core.get_path(target):
-                            logger.info("pp {}, tp {}".format(core.get_pointer_path(i, 'src'), core.get_path(target)))
-                            for c in children:
-                                if c['nodePath'] == core.get_pointer_path(i, 'dst'):
-                                    pts.append(c) # transition
-                    else: # target is transition, add place
-                        if core.get_pointer_path(i, 'dst') == core.get_path(target):
-                            for c in children:
-                                if c['nodePath'] == core.get_pointer_path(i, 'src'): 
-                                    pts.append(c) # place
-                logger.info("pts {}".format(pts))
-                return pts
-            elif arcType == "T2P": # outs, target is src
-                tps = []
-                # if target is transition --> tps has outplaces
-                # if target is place --> tps has in transitions
-                tpArcs = getAllOfMetaType("T2P")
-                logger.info("tpArcs {}".format(tpArcs))
-                # filter by target
-                for o in tpArcs:
-                    if isP: # target is place, add transition
-                        if core.get_pointer_path(o, 'dst') == core.get_path(target):
-                            # need to add transition node not path
-                            for c in children:
-                                if c['nodePath'] == core.get_pointer_path(o, 'src'):
-                                    tps.append(c)
-                    else: # target is transition, add place
-                        if core.get_pointer_path(o, 'src') == core.get_path(target):
-                            # need to add place node not path
-                            for c in children:
-                                if c['nodePath'] == core.get_pointer_path(o, 'dst'):
-                                    tps.append(c)
-                logger.info("tps {}".format(tps))
-                return tps
-
-        # gets the intersection of specified type of placeset for 2 different transitions
-        # placeType: string of either P2T or T2P
-        def isPlaceSetIntersectionEmpty(arcType, transition1, transition2):
-            places1 = getSetOf(arcType, transition1)
-            places2 = getSetOf(arcType, transition2)
-            for p1 in places1:
-                if p1 in places2:
-                    return False # non-empty intersection
-            return True # empty intersection
-
-        # the main function to classify the PetriNet
-        # children of active node loaded
-        def classifyPetriNet():
-            if isWorkflowNet():
-                self.send_notification("Petri net is a Workflow net")
-            elif isMarkedGraph():
-                self.send_notification("Petri net is a Marked graph")
-            elif isStateMachine():
-                self.send_notification("Petri net is a State machine")
-            elif isFreeChoicePetriNet():
-                self.send_notification("Petri net is a Free-choice petri net")
+        
+        TG = {}
+        CG = {}
+        PG = {}
+        TRAN = {}
+        PLACES = {}
+        arcs = {}
+        
+        
+        nodes = core.load_sub_tree(active_node)
+        for node in nodes:
+            if core.is_instance_of(node, META['Transitions']):
+                TRAN[core.get_path(node)] = node
+                CG[core.get_path(node)] = []
+                TG[core.get_path(node)] = {'inp':[], 'outp':[]}
+            elif core.is_instance_of(node, META['Arcs']):
+                arcs[core.get_path(node)] = node
+            elif core.is_instance_of(node, META['Places']):
+                PLACES[core.get_path(node)] = node
+                CG[core.get_path(node)] = []
+                PG[core.get_path(node)] = {'int':[], 'outt':[]}
+        
+        for arc in arcs.keys():
+            myArc = arcs[arc]
+            if core.is_instance_of(myArc, META['Inarcs']):
+                TG[core.get_pointer_path(myArc, 'dst')]['inp'].append(core.get_pointer_path(myArc, 'src'))
+                PG[core.get_pointer_path(myArc, 'src')]['outt'].append(core.get_pointer_path(myArc, 'dst'))
+            elif core.is_instance_of(myArc, META['outarcs']):
+                TG[core.get_pointer_path(myArc, 'src')]['outp'].append(core.get_pointer_path(myArc, 'dst'))
+                PG[core.get_pointer_path(myArc, 'dst')]['int'].append(core.get_pointer_path(myArc, 'src'))
+            CG[core.get_pointer_path(myArc, 'src')].append(core.get_pointer_path(myArc, 'dst'))
+            
+        
+        def path_search(root, path, path_len, pathlist):
+            if root is None:
+                return
+            
+            if len(path) > path_len:
+                path[path_len] = root
             else:
-                self.send_notification("Petri net is not valid")
-        # Free choice petrinet check - each transition has a unique set of inplaces
-        # get all transition pairs (t1, t2), t1 != t2
-        def isFreeChoicePetriNet():
-            transitions = getAllOfMetaType("Transition")
-            logger.info("transitions {}".format(transitions))
-            pairs = getTransitionPairs(transitions)
-            for p in pairs:
-                isEmpty = isPlaceSetIntersectionEmpty("P2T", transitions[p[0]], transitions[p[1]])
-                if not isEmpty:
-                    # inplace set is not unique, p[0] != p[1] by default
-                    return False 
-            # each transition has a unique set of inplaces
-            return True
-
-        # State Machine check - each transition has exactly one inplace and one outplace
-        def isStateMachine():
-            transitions = getAllOfMetaType('Transition')
-            for t in transitions:
-                ip = getSetOf('P2T', t)
-                op = getSetOf('T2P', t)
-                if len(ip) != 1 or len(op) != 1:
-                    return False
-            return True 
-
-        # Marked Graph - every place has exactly one out transition and one in transition
-        def isMarkedGraph():
-            places = getAllOfMetaType('Place')
-            for p in places:
-                intr = getSetOf('T2P', p)
-                logger.info("intrans {}".format(intr))
-                outr = getSetOf('P2T', p)
-                logger.info("outtrans {}".format(outr))
-                if len(intr) != 1 or len(outr) != 1:
-                    return False
-            return True
-
-        # Helper for workflow net check
-        def getSourcesAndSinks():
-            places = getAllOfMetaType('Place') # works
-            srcs = []
-            snks = []
-            logger.info("places {}".format(places))
-            for p in places:
-                intr = getSetOf('T2P', p)
-                outr = getSetOf('P2T', p)
-                logger.info("place {} intr {}, outr {}".format(p, intr, outr))
-                if len(intr) == 0:
-                    # source --> 0 in transitions
-                    srcs.append(p)
-                elif len(outr) == 0:
-                    # sink --> 0 out transitions
-                    snks.append(p)
-            return srcs, snks
-
-        # Workflow net - one source place s and one sink place o and every (place, transition) is on a path from s to o
-            # p-t-p-t-p-t-p
-        def isWorkflowNet():
-            srcs, snks = getSourcesAndSinks()
-            logger.info("srcs {} len {}, snks {} len {}".format(srcs, len(srcs), snks, len(snks)))
-            if len(srcs) != 1 or len(snks) != 1:
-                return False
-            # exactly 1 source and 1 sink - ensure 1 path to get from source to sink
-            src = srcs[0]
-            snk = snks[0]
-            return reachable(src, snk)
-
-        # recursive helper checks whether end is reachable from start
-        # given a start place the base case is checked and if not true then
-        # all of the out places/transitions (depending on start) are stored and
-        # checked over. If any one of these elements cannot reach the end, then 
-        # the definition of a workflow net is violated so return false
-        def reachable(start, end):
-            # base case
-            logger.info("start is {}".format(start))
-            if start == end:
-                return True
-            # for all out places/transitions from source check if can reach snk 
-            if core.is_type_of(start, META['Place']):
-                # outs has transitions
-                outs = getSetOf('P2T', start)
-            elif core.is_type_of(start, META['Transition']):
-                # outs has places
-                outs = getSetOf('T2P', start)
-            # nowhere to go and start != end --> deadend
-            if len(outs) == 0:
-                return False
-            # check the rest
-            logger.info("outs {}".format(outs))
-            for o in outs:
-                if not reachable(o, end):
-                    return False
-            # can reach end from all o's
-            return True
-
-        logger.info("classifying petri net...")
-        classifyPetriNet()
-
-        commit_info = self.util.save(root_node, self.commit_hash, 'master', 'Python plugin updated the model')
-        logger.info('committed :{0}'.format(commit_info))
+                path.append(root)
+            
+            path_len += 1
+            if len(CG[root]) == 0:
+                pathlist.append([i for i in path])
+            else:
+                for neighbor in CG[root]:
+                    path_search(neighbor, path, path_len, pathlist)
+        
+        
+        bad_free = False
+        for t in TG.keys():
+            for j in TG.keys():
+                if t != j and len(list(set(TG[t]['inp']) & set(TG[j]['inp']))) > 0:
+                    bad_free = True
+            
+        bad_state = False
+        for t in TG.keys():
+            if len(TG[t]['inp']) != 1 or len(TG[t]['outp']) != 1:
+                bad_state = True
+            
+        bad_marked = False
+        source = None
+        srcct = 0
+        dest = None
+        dstct = 0
+        for p in PG.keys():
+            if len(PG[p]['int']) != 1 or len(PG[p]['outt']) != 1:
+                bad_marked = True
+            if len(PG[p]['int']) == 0:
+                source = p
+                srcct += 1
+            if len(PG[p]['outt']) == 0:
+                dest = p
+                dstct += 1
+        
+        bad_work = False
+        if source is None or srcct != 1 or dest is None or dstct != 1:
+            bad_work = True
+        else:
+            pths = []
+            path_search(source, [], 0, pths)
+            for pth in pths:
+                if pth[-1] != dest:
+                    bad_work = True
+            for p in PG.keys():
+                bad_place = True
+                for pth in pths:
+                    if p in pth:
+                        bad_place = False
+                if bad_place:
+                    bad_work = True
+            for t in TG.keys():
+                bad_trans = True
+                for pth in pths:
+                    if t in pth:
+                        bad_trans = False
+                if bad_trans:
+                    bad_work = True
+            
+        if not bad_free:
+            self.send_notification("Your Petri Net is a Free-choice petri net")
+        if not bad_state:
+            self.send_notification("Your Petri Net is a State Machine")
+        if not bad_marked:
+            self.send_notification("Your Petri Net is a Marked Graph")
+        if not bad_work:
+            self.send_notification("Your Petri Net is a Workflow Net")
