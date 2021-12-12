@@ -12,6 +12,9 @@
       },
       "StateMachine": {
         "src": "src/seeds/StateMachine"
+      },
+      "PetrinetSeed": {
+        "src": "src/seeds/PetrinetSeed"
       }
     },
     "visualizers": {
@@ -21,13 +24,6 @@
         "panel": "src/visualizers/panels/Acore",
         "secondary": false,
         "widget": "src/visualizers/widgets/Acore"
-      },
-      "SimSM": {
-        "src": "panels/SimSM/SimSMPanel",
-        "title": "SimSM",
-        "panel": "src/visualizers/panels/SimSM",
-        "secondary": false,
-        "widget": "src/visualizers/widgets/SimSM"
       }
     }
   },

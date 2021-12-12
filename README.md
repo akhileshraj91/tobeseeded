@@ -30,16 +30,17 @@ and one in transition.
 
 
 ## Installation and Setup of Docker
-
-The easiest way to start using this project is to fork it in git. Alternatively, you can create your empty repository, copy the content and just rename all instances of 'WDeStuP' to your liking. Assuming you fork, you can start-up following this few simple steps:
 - install [Docker-Desktop](https://www.docker.com/products/docker-desktop)
 - clone the repository
 - edit the '.env' file so that the BASE_DIR variable points to the main repository directory
-- `docker-compose up -d`
+- `docker-compose up -d` will up start the docker server.
 - connect to your server at http://localhost:8888
 
 ### Main docker commands
+
+You may need the following commands to install packages, to make visualizers or to install plugins:
 All of the following commands should be used from your main project directory (where this file also should be):
+
 - To **rebuild** the complete solution `docker-compose build` (and follow with the `docker-compose up -d` to restart the server)
 - To **debug** using the logs of the WebGME service `docker-compose logs webgme`
 - To **stop** the server just use `docker-compose stop`
@@ -76,15 +77,19 @@ Follow these steps to add a new seed based on an existing project in your server
 - copy webgme-setup.json `docker-compose cp webgme:/usr/app/webgme-setup.json webgme-setup.json`
 - copy webgme-config `docker-compose cp webgme:/usr/app/config/config.webgme.js config/config.webgme.js`
 
-### Creating PetriNet Models
+### PetriNet Models
 
 Once you have set-up the docker environment you can execute it by using `docker-compose up -d`. Once you see that the docker is running open your browser and browse to your local host at http://localhost:8888.
 Within the localhost:
 - Create a new project using the seed tobeseeded.
-- You can see an example folder where you can see a few examples of petri nets.
-- You can try executing these examples using the Acore visualizers chosen from the visualizer and play around.
-- You can also run the python plugin using the play button on the top left corner to see what class this petri net belongs to.
-- Now you can create one for yourselves by opening the componsition and dragging a new example to the folder.
-- Open the Example folder and drag components from the panel located at the bottom left side of the screen. 
-- Connect Each of the components using the connectors and you are good to execute your petri nets.
+- Browse to the Exaples folder and select any of the examples and check the visualizer "Acore" and Plugin "AcorePlugin".
+- The Acore visualizer can be accessed from the visualizer panel located to the left of the screen. 
+- AcorePlugin can be activated using the play button located towards the top left corner of the screen.
+- You can play around with these examples and learn how Petri Net works.
+
+#### New Model
+- Now you can create one for yourselves by opening the composition and dragging an Petr_example Instance within the Examples folder.
+- Choose a suitable name to your example and enter the meta and design a Petri Net.
+- Drag components from the component panel located at the bottom left side of the screen. 
+- Connect Each of the components using the connectors (arcs) and you are good to go. Vizualize and play around using your models.
 
